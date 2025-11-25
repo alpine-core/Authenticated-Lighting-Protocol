@@ -1,25 +1,30 @@
-# Handshake
+# ALPINE Handshake
 
-Modeled after E1.33 ClientConnect/Reply but simplified (no broker).
+The ALPINE handshake establishes:
+- mutual authentication
+- shared session keys
+- session identifiers
+- capability negotiation
 
 ## Flow
-1. **ControllerHello** → controller identity, requested version, capabilities, key exchange proposal.
-2. **NodeHello** ← node identity, supported version, capabilities, key exchange proposal.
-3. **ChallengeRequest** ← nonce + expected controller CID + signature scheme.
-4. **ChallengeResponse** → signed nonce + key confirmation.
-5. **SessionEstablished** ← session id, agreed version, optional stream key.
 
-If any step fails, session moves to Failed and streaming is blocked.
+1) Controller → device: `session_init`
+    - X25519 ephemeral pubkey
+    - controller nonce
 
-## Session State Machine
-- Init → Handshake → Authenticated → Ready → Streaming
-- Any → Failed | Closed
-- Timeouts or replay → Failed (fail-closed).
+2) Device → controller: `session_ack`
+    - device X25519 pubkey
+    - device identity block
+    - Ed25519 signature
+    - server nonce
 
-## Cryptography
-- Key Exchange: X25519
-- Signatures: Ed25519
-- Nonce length: 32 bytes; session id: UUIDv4
+3) Controller verifies signature and identity
 
-## Keepalive
-- Keepalive frames on control channel; missing keepalive triggers failure.
+4) Both derive shared secret using X25519
+
+5) Controller → device: `session_ready`
+    - encrypted readiness message
+
+6) Device → controller: `session_complete`
+
+Session is now active.

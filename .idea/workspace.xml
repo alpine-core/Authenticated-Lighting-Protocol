@@ -28,18 +28,32 @@
     </cargoProject>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ff85e27c-4996-4f6d-98b9-5e53e1a5c90d" name="Changes" comment=" ALNP repo is now cleaned, documented, versioned, and release-ready with multi-language builds and publishing pipelines.&#10;                                                                                                                                                                                    &#10;  - Removed legacy sACN/ETCLabs artifacts (cmake, docs, tools, examples, include/src/sacn, CI) leaving only ALNP v1 content and bindings.                                           &#10;  - Added full docs set (docs/*.md, SPEC.md, refreshed README.md, roadmap.md) covering overview, architecture, handshake/control messages, streaming/jitter, discovery, bindings,   &#10;    and public-facing examples across Rust/TS/Python/C.                                                                                                                             &#10;  - Versioning/release infra: VERSION (1.0.0), CHANGELOG.md, .gitattributes, updated .gitignore, Rust crate 1.0.0 with staticlib output.                                            &#10;  - Build scripts (scripts/build_{rust,ts,python,c}.sh) producing artifacts under dist/ using VERSION metadata.                                                                     &#10;  - Multi-language release workflows under .github/workflows/ for Rust crate, TS package, Python wheel, and C tarball with tests, artifacts, and release notes on tags.             &#10;  - Public bindings packaged: TS package metadata updated, Python stub package (bindings/python), C header README, examples for all languages.                                      &#10;  - Control crypto helpers added, reliable control channel tweaks, and tests updated; cargo test now passes.">
+    <list default="true" id="ff85e27c-4996-4f6d-98b9-5e53e1a5c90d" name="Changes" comment="Added extensive E2E and performance tests for ALNP handshake, control, and streaming.&#10;&#10;- Introduced a comprehensive suite of E2E tests covering control-plane reliability, reordering, retransmission, handshake scenarios (success/replay/signature validation/failures), and streaming.&#10;- Added performance tests for latency, keepalive stability, mixed conditions, streaming load, and universe capacity.&#10;- Enhanced test infrastructure with mock UDP, stream, and custom assertion utilities.&#10;- Updated `.gitignore` and `.idea` for development artifacts.">
+      <change afterPath="$PROJECT_DIR$/docs/capabilities.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/discovery.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/reference_impl.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/security.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/alnp/target/.rustc_info.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/alnp/target/.rustc_info.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SPEC.md" beforeDir="false" afterPath="$PROJECT_DIR$/SPEC.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/architecture.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/architecture.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/bindings.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/control_plane.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/control_plane.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/handshake.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/handshake.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/overview.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/streaming.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/streaming.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/alnp/README.md" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="RsBuildProfile:release" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="RsBuildProfile:dev" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -66,12 +80,16 @@
   &quot;associatedIndex&quot;: 5
 }</component>
   <component name="ProjectId" id="35scZdLRMdSmp6Je5pWdlrMsc83" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "Cargo.Build alnp.executor": "Run",
     "Cargo.Test basic.executor": "Run",
     "Cargo.Test control_reorder::control_reorder.executor": "Run",
@@ -86,7 +104,6 @@
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "RunOnceActivity.rust.reset.selective.auto.import": "true",
     "RunOnceActivity.west.config.association.type.startup.service": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "git-widget-placeholder": "main",
@@ -98,6 +115,7 @@
     "nodejs_package_manager_path": "npm",
     "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
     "org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon": "",
+    "settings.editor.selected.configurable": "editor.preferences.tabs",
     "ts.external.directory.path": "C:\\Users\\krist\\AppData\\Local\\Programs\\CLion\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
     "vue.rearranger.settings.migration": "true"
   }
@@ -107,7 +125,7 @@
       <command value="cargo test --release -- --ignored --nocapture " />
     </option>
   </component>
-  <component name="RunManager" selected="Cargo.test">
+  <component name="RunManager" selected="Cargo.Build alnp">
     <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="CLION.EXTERNAL.BUILD" enabled="true" />
@@ -202,15 +220,58 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Cargo.test" />
-        <item itemvalue="Cargo.Test control_reorder::control_reorder" />
-        <item itemvalue="Cargo.Test e2e" />
-        <item itemvalue="Cargo.Build alnp" />
-        <item itemvalue="Cargo.Test basic" />
-      </list>
-    </recent_temporary>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="Tox" factoryName="Tox">
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Doctests">
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method v="2" />
+    </configuration>
   </component>
   <component name="RustProjectSettings">
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
@@ -223,7 +284,7 @@
       <option name="presentableId" value="Default" />
       <updated>1763902276726</updated>
       <workItem from="1763902278166" duration="6168000" />
-      <workItem from="1763911071569" duration="516000" />
+      <workItem from="1763911071569" duration="6163000" />
     </task>
     <task id="LOCAL-00001" summary="Built an ALNP scaffold on top of the existing sACN codebase while leaving the transport untouched, adding an authenticated control-plane, message schema, and Rust reference code plus docs.&#10;                                                                                                                                                                                                                                    &#10;  - Added ALNP Rust crate with handshake/session/crypto/stream scaffolding and public entrypoint alnp::AlnpSession (src/alnp/Cargo.toml, src/alnp/src/lib.rs, src/alnp/src/handshake/{mod.rs,client.rs,server.rs}, src/alnp/src/    &#10;    session/mod.rs, src/alnp/src/crypto/mod.rs, src/alnp/src/stream.rs).                                                                                                                                                            &#10;  - Defined E1.33-inspired handshake messages and proto schema (src/alnp/src/messages/mod.rs, src/alnp/messages/alnp_handshake.proto), including ControllerHello/NodeHello/ChallengeRequest/ChallengeResponse/SessionEstablished.   &#10;  - Documented protocol and project direction (SPEC.md, roadmap.md, src/alnp/README.md), and highlighted ALNP additions in the root README.md.                                                                                      &#10;  - Implemented ALNP-Stream wrapper that gates sACN send/subscribe calls on session authentication (src/alnp/src/stream.rs), with placeholder key exchange/authenticator hooks ready for real crypto/TLS.">
       <option name="closed" value="true" />
@@ -257,7 +318,14 @@
       <option name="project" value="LOCAL" />
       <updated>1763906392929</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL−00005" summary="Added extensive E2E and performance tests for ALNP handshake, control, and streaming.&#10;&#10;- Introduced a comprehensive suite of E2E tests covering control-plane reliability, reordering, retransmission, handshake scenarios (success/replay/signature validation/failures), and streaming.&#10;- Added performance tests for latency, keepalive stability, mixed conditions, streaming load, and universe capacity.&#10;- Enhanced test infrastructure with mock UDP, stream, and custom assertion utilities.&#10;- Updated `.gitignore` and `.idea` for development artifacts.">
+      <option name="closed" value="true" />
+      <created>1763911785921</created>
+      <option name="number" value="LOCAL−00005" />
+      <option name="presentableId" value="LOCAL−00005" />
+      <updated>1763911785921</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -268,10 +336,22 @@
     <isAutomaticFoundErrors value="true" />
     <isAutomaticReloadCMake value="true" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Built an ALNP scaffold on top of the existing sACN codebase while leaving the transport untouched, adding an authenticated control-plane, message schema, and Rust reference code plus docs.&#10;                                                                                                                                                                                                                                    &#10;  - Added ALNP Rust crate with handshake/session/crypto/stream scaffolding and public entrypoint alnp::AlnpSession (src/alnp/Cargo.toml, src/alnp/src/lib.rs, src/alnp/src/handshake/{mod.rs,client.rs,server.rs}, src/alnp/src/    &#10;    session/mod.rs, src/alnp/src/crypto/mod.rs, src/alnp/src/stream.rs).                                                                                                                                                            &#10;  - Defined E1.33-inspired handshake messages and proto schema (src/alnp/src/messages/mod.rs, src/alnp/messages/alnp_handshake.proto), including ControllerHello/NodeHello/ChallengeRequest/ChallengeResponse/SessionEstablished.   &#10;  - Documented protocol and project direction (SPEC.md, roadmap.md, src/alnp/README.md), and highlighted ALNP additions in the root README.md.                                                                                      &#10;  - Implemented ALNP-Stream wrapper that gates sACN send/subscribe calls on session authentication (src/alnp/src/stream.rs), with placeholder key exchange/authenticator hooks ready for real crypto/TLS." />
     <MESSAGE value=" Added control-plane signing/verification, refined reliability, and public-facing APIs/bindings scaffolds" />
     <MESSAGE value=" ALNP repo is now cleaned, documented, versioned, and release-ready with multi-language builds and publishing pipelines.&#10;                                                                                                                                                                                    &#10;  - Removed legacy sACN/ETCLabs artifacts (cmake, docs, tools, examples, include/src/sacn, CI) leaving only ALNP v1 content and bindings.                                           &#10;  - Added full docs set (docs/*.md, SPEC.md, refreshed README.md, roadmap.md) covering overview, architecture, handshake/control messages, streaming/jitter, discovery, bindings,   &#10;    and public-facing examples across Rust/TS/Python/C.                                                                                                                             &#10;  - Versioning/release infra: VERSION (1.0.0), CHANGELOG.md, .gitattributes, updated .gitignore, Rust crate 1.0.0 with staticlib output.                                            &#10;  - Build scripts (scripts/build_{rust,ts,python,c}.sh) producing artifacts under dist/ using VERSION metadata.                                                                     &#10;  - Multi-language release workflows under .github/workflows/ for Rust crate, TS package, Python wheel, and C tarball with tests, artifacts, and release notes on tags.             &#10;  - Public bindings packaged: TS package metadata updated, Python stub package (bindings/python), C header README, examples for all languages.                                      &#10;  - Control crypto helpers added, reliable control channel tweaks, and tests updated; cargo test now passes." />
-    <option name="LAST_COMMIT_MESSAGE" value=" ALNP repo is now cleaned, documented, versioned, and release-ready with multi-language builds and publishing pipelines.&#10;                                                                                                                                                                                    &#10;  - Removed legacy sACN/ETCLabs artifacts (cmake, docs, tools, examples, include/src/sacn, CI) leaving only ALNP v1 content and bindings.                                           &#10;  - Added full docs set (docs/*.md, SPEC.md, refreshed README.md, roadmap.md) covering overview, architecture, handshake/control messages, streaming/jitter, discovery, bindings,   &#10;    and public-facing examples across Rust/TS/Python/C.                                                                                                                             &#10;  - Versioning/release infra: VERSION (1.0.0), CHANGELOG.md, .gitattributes, updated .gitignore, Rust crate 1.0.0 with staticlib output.                                            &#10;  - Build scripts (scripts/build_{rust,ts,python,c}.sh) producing artifacts under dist/ using VERSION metadata.                                                                     &#10;  - Multi-language release workflows under .github/workflows/ for Rust crate, TS package, Python wheel, and C tarball with tests, artifacts, and release notes on tags.             &#10;  - Public bindings packaged: TS package metadata updated, Python stub package (bindings/python), C header README, examples for all languages.                                      &#10;  - Control crypto helpers added, reliable control channel tweaks, and tests updated; cargo test now passes." />
+    <MESSAGE value="Added extensive E2E and performance tests for ALNP handshake, control, and streaming.&#10;&#10;- Introduced a comprehensive suite of E2E tests covering control-plane reliability, reordering, retransmission, handshake scenarios (success/replay/signature validation/failures), and streaming.&#10;- Added performance tests for latency, keepalive stability, mixed conditions, streaming load, and universe capacity.&#10;- Enhanced test infrastructure with mock UDP, stream, and custom assertion utilities.&#10;- Updated `.gitignore` and `.idea` for development artifacts." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added extensive E2E and performance tests for ALNP handshake, control, and streaming.&#10;&#10;- Introduced a comprehensive suite of E2E tests covering control-plane reliability, reordering, retransmission, handshake scenarios (success/replay/signature validation/failures), and streaming.&#10;- Added performance tests for latency, keepalive stability, mixed conditions, streaming load, and universe capacity.&#10;- Enhanced test infrastructure with mock UDP, stream, and custom assertion utilities.&#10;- Updated `.gitignore` and `.idea` for development artifacts." />
   </component>
 </project>

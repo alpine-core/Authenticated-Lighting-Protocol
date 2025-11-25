@@ -1,77 +1,200 @@
-# ALNP — Authenticated Lighting Network Protocol (Draft)
+# ALPINE 1.0 Specification
 
-ALNP adds a lightweight, E1.33-inspired control plane in front of UDP-based lighting streaming. The goal is to gate universes behind an authenticated handshake without altering streaming payload formats or transport behavior.
+This document defines the **wire protocol**, **message formats**, **cryptographic primitives**, **transport behavior**, and **state machines** for the Authenticated Lighting Protocol (ALPINE) v1.0.
 
-## Roles
-- **Controller**: initiates control-plane sessions before streaming sACN universes.
-- **Node**: responder that gates sACN reception/transmission until authentication succeeds.
+ALPINE consists of four major subsystems:
 
-## Handshake Overview
-Modeled after E1.33 ClientConnect/ClientConnectReply, but simplified to a direct controller ↔ node exchange (no broker):
-1. `ControllerHello` — controller identity, requested protocol version, capabilities, key exchange proposal.
-2. `NodeHello` — node identity, supported version, capabilities, key exchange proposal, `auth_required` flag.
-3. `ChallengeRequest` — node-issued nonce + signature scheme indicating the controller must prove possession of its key.
-4. `ChallengeResponse` — controller-signed nonce and key confirmation blob (derived from key exchange).
-5. `SessionEstablished` — node acknowledgement; provides session id, agreed protocol version, and optional stream key.
+1. **Discovery Layer**
+2. **Handshake Layer**
+3. **Control Plane**
+4. **Streaming Transport**
 
-After step 5, ALNP-Stream may start forwarding sACN packets. Any failure or timeout ends the handshake and sACN remains blocked.
+All behaviour defined here is canonical. Language bindings and reference implementations must follow this spec exactly.
 
-## Messages (see `src/alnp/messages/alnp_handshake.proto`)
-- **ControllerHello**: `{controller_cid, manufacturer, model, firmware_rev, requested_version, capabilities, key_exchange}`
-- **NodeHello**: `{node_cid, manufacturer, model, firmware_rev, supported_version, capabilities, key_exchange, auth_required}`
-- **ChallengeRequest**: `{nonce, controller_expected, signature_scheme}`
-- **ChallengeResponse**: `{nonce, signature, key_confirmation}`
-- **SessionEstablished**: `{session_id, agreed_version, stream_key, expires_at_epoch_ms}`
-- **Keepalive**: `{session_id?, tick_ms}`
+---
 
-Control-plane envelopes (JSON over UDP with reliability/backoff):
-- **ControlHeader**: `{seq, nonce, timestamp_ms}`
-- **ControlEnvelope**: `{header, payload, signature}`
-- **Acknowledge**: `{header, ok, detail?, signature}`
+# 1. Terminology
 
-Control payloads:
-- `Identify` / `IdentifyResponse`
-- `GetDeviceInfo` / `DeviceInfo`
-- `GetCapabilities` / `Capabilities`
-- `SetWifiCreds`
-- `SetUniverseMapping`
-- `SetMode { normal | calibration | maintenance }`
-- `GetStatus` / `StatusReport`
-- `Restart`
+- **Controller:** Any software generating control or streaming output.
+- **Endpoint:** Any device speaking ALPINE (fixture, node, processor).
+- **Session:** A mutually authenticated bidirectional channel between a controller and endpoint.
+- **Envelope:** A structured CBOR message containing type, metadata, and payload.
 
-Capabilities reflect E1.33-style feature flags: encryption support, redundancy awareness, max universes, vendor data.
+---
 
-## Authentication & Key Exchange
-- **Algorithms**: X25519 for key agreement; Ed25519 for signatures (extensible to ECDSA-P256).
-- **Identity**: 128-bit CID + manufacturer/model/firmware string tuples.
-- **Challenge**: node issues nonce, controller signs it (Ed25519 implemented); node validates signature and key confirmation to bind identity to the agreed key.
-- **Session Keys**: derived from key exchange; `stream_key` reserved for optional payload encryption/MAC.
-- **TLS**: optional wrapping point for the control channel; left as an interface to keep footprint small.
+# 2. Cryptographic Foundations
 
-## Keepalive & Versioning
-- Keepalive pings ride the control channel post-handshake; failure to respond tears down the session and blocks streaming.
-- Version negotiation requires major version alignment; minor/patch may diverge if capabilities are compatible.
-- Keepalive task periodically sends `Keepalive` frames on the control channel to detect dead sessions; reception resets retransmission counters.
-- Control-plane reliability: sequence numbers, nonce-based replay protection, exponential backoff on retransmit, drop connection after repeated failures.
+ALPINE uses:
 
-## Streaming Integration (ALNP-Stream)
-- Streaming wrapper calls `ensure_streaming_ready()` before sending/accepting any universe.
-- Universe rejection: nodes drop frames if session is not authenticated or has expired.
-- Payload encryption is optional and not in the baseline; ALNP-Stream keeps a hook for inserting it later.
-- Jitter strategies supported: hold-last, drop, or lerp between frames. Sequence rollover resets cached frames.
+- **Ed25519** signatures
+- **X25519** for key exchange
+- **ChaCha20-Poly1305** for encrypted control envelopes
+- **HKDF-SHA256** for key derivation
 
-## Discovery / Onboarding
-- Devices advertise IP + public key over BLE setup mode.
-- Controller reads advertisement, connects via UDP, performs ALNP handshake.
-- Control plane configures Wi-Fi credentials, universes, mode; then streaming begins.
+Every device MUST embed:
 
-## Rejection Paths
-- Identity mismatch (CID not authorized, firmware too old).
-- Signature failure or stale nonce.
-- Unsupported protocol version or missing required capabilities.
-- Expired sessions or missing keepalive heartbeats.
+- A long-term Ed25519 public key
+- A stable device identifier
+- Manufacturer + model identifiers
 
-## Y-Link Considerations
-- Minimize round trips: single challenge cycle before streaming.
-- Allow lightweight implementations without a broker.
-- Keep message sizes compact; avoid impacting sACN throughput or timing windows.
+---
+
+# 3. Message Encoding
+
+All messages MUST be encoded using **CBOR (RFC 8949)**.
+
+CBOR maps MUST use:
+- deterministic key ordering
+- shortest-encoding integer keys where possible
+- UTF-8 strings
+
+---
+
+# 4. Discovery Layer
+
+Defines two messages:
+
+### 4.1 `alpine_discover`
+Sent via UDP broadcast.
+
+```json
+{
+"type": "alpine_discover",
+"version": "1.0",
+"client_nonce": <32 bytes>,
+"requested": ["identity", "capabilities", "network"]
+}
+```
+
+
+### 4.2 `alpine_discover_reply`
+Signed by device.
+
+```json
+{
+"type": "alpine_discover_reply",
+"alpine_version": "1.0",
+
+"device_id": <string>,
+"manufacturer_id": <string>,
+"model_id": <string>,
+"hardware_rev": <string>,
+"firmware_rev": <string>,
+"mac": AA:BB:CC...
+```
+
+Controllers MUST verify:
+- Ed25519 signature
+- Nonce integrity
+- Identity fields
+
+---
+
+# 5. Handshake Layer
+
+States:
+- `Init`
+- `Handshake`
+- `Authenticated`
+- `Ready`
+- `Streaming`
+
+Flow:
+1. Controller → device: `session_init`
+2. Device → controller: `session_ack`
+3. Verify signature
+4. Derive session keys (HKDF)
+5. Controller → device: `session_ready`
+6. Device → controller: `session_complete`
+
+Sessions MUST fail-closed on:
+- nonce mismatch
+- signature failure
+- timeout
+- replay violation
+
+---
+
+# 6. Control Plane
+
+Envelopes:
+
+```json
+
+{
+"type": "alpine_control",
+"session_id": <uuid>,
+"seq": <uint64>,
+"op": "<operation>",
+"payload": { ... },
+"mac": <auth_tag>
+}
+```
+
+
+Control operations include:
+- get_info
+- get_caps
+- identify
+- restart
+- get_status
+- set_config
+- set_mode
+- time_sync
+
+Control envelopes MUST support:
+- retransmit
+- ack messages
+- exponential backoff
+- optional signatures
+
+---
+
+# 7. Streaming Transport (ALNP-Stream)
+
+A modern frame transport replacing DMX limitations.
+
+Frame envelope:
+
+```json
+{
+"type": "alpine_frame",
+"session_id": <uuid>,
+"timestamp_us": <uint64>,
+"priority": <0-255>,
+"channel_format": "u8" | "u16",
+"channels": [ ... ],
+"groups": { ... },
+"metadata": { ... }
+}
+```
+
+
+Requirements:
+- No fixed universe or 512-slot constraints
+- Ordering MUST be preserved per-session
+- No retransmission for frames
+- Device may apply jitter strategies:
+    - hold-last
+    - drop
+    - interpolate
+
+---
+
+# 8. Error Codes
+
+Defined in `docs/errors.md`.
+
+---
+
+# 9. Security
+
+See `docs/security.md`.
+
+---
+
+# 10. Interoperability
+
+All fields must be stable and vendor-agnostic.  
+Capabilities MUST describe optional or extended functionality.  
+

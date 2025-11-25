@@ -1,38 +1,36 @@
-# Control Plane
+# ALPINE Control Plane
 
-ALNP control messages are JSON envelopes sent over UDP with reliability helpers.
+The Control Plane provides reliable, secure, structured operations.
 
-## Envelope
-- `ControlHeader { seq, nonce, timestamp_ms }`
-- `ControlPayload` (tagged union)
-- `signature` (Ed25519 over payload)
+Operations are encoded as:
 
-## Messages
-- `Identify` / `IdentifyResponse` (blink/metadata)
-- `GetDeviceInfo` / `DeviceInfo`
-- `GetCapabilities` / `Capabilities`
-- `SetWifiCreds`
-- `SetUniverseMapping`
-- `SetMode { Normal | Calibration | Maintenance }`
-- `GetStatus` / `StatusReport`
-- `Restart`
-- `Acknowledge` wraps responses with signature
-
-## Security
-- X25519 for key agreement during handshake.
-- Ed25519 signatures for control envelopes and acknowledgements.
-- Nonce + sequence required; replayed nonces are rejected.
-
-## Reliability
-- Retransmit on timeout with exponential backoff.
-- Keepalive resets counters; drop after repeated failures.
-- Mandatory signed response for every request.
-
-## Example (JSON)
 ```json
 {
-  "header": { "seq": 42, "nonce": "b64==", "timestamp_ms": 1700000000000 },
-  "payload": { "type": "SetMode", "body": { "mode": "Normal" } },
-  "signature": "b64sig=="
+type: "alpine_control",
+session_id,
+seq,
+op,
+payload,
+mac
 }
 ```
+
+
+## Reliability
+
+- Sequence numbers increment monotonically
+- Retransmission permitted for control envelopes
+- Ack messages must be sent when requested
+- Exponential backoff is REQUIRED
+- Control envelopes MUST be cryptographically authenticated
+
+## Standard Operations
+
+- get_info
+- get_caps
+- get_status
+- identify
+- set_config
+- restart
+- time_sync
+- vendor namespace operations

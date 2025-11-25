@@ -1,18 +1,36 @@
-# Streaming
+# ALPINE Streaming (ALP-Stream)
 
-ALNP-Stream wraps streaming payloads and enforces authentication gates.
+ALNP-Stream replaces DMX/sACN universes with modern frame envelopes.
 
-## Rules
-- Streaming allowed only in Ready/Streaming states.
-- Fail-closed: any handshake/control failure stops streaming and disables universes.
-- Universe enable/disable via control plane.
-- Sequence rollover resets cached frames.
+## Frame Structure
 
-## Jitter Strategies
-- **HoldLast**: repeat last frame when jitter/empty frame detected.
-- **Drop**: drop missing frame.
-- **Lerp**: blend previous and current frame for smoothing.
+```json
+{
+type: "alpine_frame",
+session_id,
+timestamp_us,
+priority,
+channel_format, // "u8" or "u16"
+channels, // array of values
+groups, // optional grouping
+metadata // optional per-frame metadata
+}
+```
 
-## Adapter
-- `SacnStreamAdapter` trait bridges to transport; `CSacnAdapter` provides FFI hooks to existing sACN libs if desired.
-- Streaming methods: `send(universe, payload)` and `subscribe(universe)` respect session gates.
+
+## Guarantees
+
+- Frames are not retransmitted
+- Delivery order is preserved per-session
+- Supported jitter strategies:
+    - hold-last
+    - drop
+    - lerp (interpolate)
+- Encryption optional but supported
+
+## Advantages
+
+- No fixed universe limits
+- Unlimited channels
+- Engineered for AI-driven or dynamic lighting
+- Frame metadata extensible
