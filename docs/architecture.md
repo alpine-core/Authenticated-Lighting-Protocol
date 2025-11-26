@@ -1,7 +1,7 @@
 # ALPINE Architecture Overview
 
 ALPINE is built around four clean layers:
-
+```
 +-------------------------------+
 | Application (Controllers) |
 +-------------------------------+
@@ -13,7 +13,7 @@ ALPINE is built around four clean layers:
 +-------------------------------+
 | Transport (UDP/QUIC) |
 +-------------------------------+
-
+```
 
 The architecture separates:
 - cryptographic identity
