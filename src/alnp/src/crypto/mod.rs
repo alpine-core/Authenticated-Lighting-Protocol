@@ -42,7 +42,10 @@ impl X25519KeyExchange {
     pub fn new() -> Self {
         let private_key = X25519Secret::random_from_rng(OsRng);
         let public_key = X25519PublicKey::from(&private_key);
-        Self { public_key, private_key }
+        Self {
+            public_key,
+            private_key,
+        }
     }
 }
 
@@ -103,7 +106,12 @@ pub enum CryptoError {
 }
 
 /// Compute an authentication tag for a control payload using the derived control key.
-pub fn compute_mac(keys: &SessionKeys, seq: u64, payload: &[u8], aad: &[u8]) -> Result<Vec<u8>, CryptoError> {
+pub fn compute_mac(
+    keys: &SessionKeys,
+    seq: u64,
+    payload: &[u8],
+    aad: &[u8],
+) -> Result<Vec<u8>, CryptoError> {
     let key = Key::from_slice(&keys.control_key);
     let cipher = ChaCha20Poly1305::new(key);
     let mut nonce = [0u8; 12];

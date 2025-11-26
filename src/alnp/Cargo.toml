@@ -27,3 +27,20 @@ chacha20poly1305 = { version = "0.10", features = ["alloc"] }
 hkdf = "0.12"
 sha2 = "0.10"
 tracing = "0.1"
+[dev-dependencies]
+criterion = "0.4"
+
+[[bench]]
+name = "alpine_streaming"
+path = "benches/alpine_streaming.rs"
+harness = false
+
+[[bench]]
+name = "artnet_streaming"
+path = "benches/artnet_streaming.rs"
+harness = false
+
+[[bench]]
+name = "sacn_streaming"
+path = "benches/sacn_streaming.rs"
+harness = false

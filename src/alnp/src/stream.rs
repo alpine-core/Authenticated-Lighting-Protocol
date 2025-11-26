@@ -39,6 +39,10 @@ impl<T: FrameTransport> AlnpStream<T> {
         }
     }
 
+    pub fn set_jitter_strategy(&self, strat: JitterStrategy) {
+        self.session.set_jitter_strategy(strat);
+    }
+
     /// Sends a streaming frame built from raw channel data.
     pub fn send(
         &self,

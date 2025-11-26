@@ -10,9 +10,9 @@ use crate::messages::{
 };
 
 pub mod client;
+pub mod keepalive;
 pub mod server;
 pub mod transport;
-pub mod keepalive;
 
 /// Transport abstraction used during the ALNP handshake.
 #[async_trait]

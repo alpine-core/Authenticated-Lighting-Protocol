@@ -45,9 +45,7 @@ where
             requested: self.capabilities.clone(),
             session_id,
         };
-        transport
-            .send(HandshakeMessage::SessionInit(init))
-            .await?;
+        transport.send(HandshakeMessage::SessionInit(init)).await?;
 
         // 2) Device -> controller: session_ack
         let ack = match transport.recv().await? {

@@ -90,9 +90,14 @@ where
             .key_exchange
             .derive_keys(&init.controller_pubkey, &salt)
             .map_err(|e| HandshakeError::Authentication(format!("{}", e)))?;
-        let mac_valid = compute_mac(&keys, 0, init.session_id.as_bytes(), device_nonce.as_slice())
-            .map(|expected| expected == ready.mac)
-            .unwrap_or(false);
+        let mac_valid = compute_mac(
+            &keys,
+            0,
+            init.session_id.as_bytes(),
+            device_nonce.as_slice(),
+        )
+        .map(|expected| expected == ready.mac)
+        .unwrap_or(false);
         if !mac_valid {
             return Err(HandshakeError::Authentication(
                 "session_ready MAC invalid".into(),

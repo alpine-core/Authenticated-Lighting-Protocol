@@ -1,6 +1,5 @@
+use alpine::e2e_common::run_udp_handshake;
 use std::error::Error;
-
-use super::common::run_udp_handshake;
 
 #[tokio::test]
 async fn handshake_udp_e2e_phase1() -> Result<(), Box<dyn Error>> {
@@ -18,9 +17,7 @@ async fn handshake_udp_e2e_phase1() -> Result<(), Box<dyn Error>> {
         node_established.session_id
     );
 
-    let controller_keys = controller_session
-        .keys()
-        .ok_or("controller missing keys")?;
+    let controller_keys = controller_session.keys().ok_or("controller missing keys")?;
     let node_keys = node_session.keys().ok_or("node missing keys")?;
     assert_eq!(controller_keys.control_key, node_keys.control_key);
     assert_eq!(controller_keys.stream_key, node_keys.stream_key);

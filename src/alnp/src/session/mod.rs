@@ -115,7 +115,10 @@ impl AlnpSession {
     }
 
     pub fn jitter_strategy(&self) -> JitterStrategy {
-        self.jitter.lock().map(|j| *j).unwrap_or(JitterStrategy::Drop)
+        self.jitter
+            .lock()
+            .map(|j| *j)
+            .unwrap_or(JitterStrategy::Drop)
     }
 
     pub fn close(&self) {

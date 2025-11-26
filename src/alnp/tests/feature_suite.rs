@@ -95,10 +95,7 @@ async fn create_sessions() -> (AlnpSession, AlnpSession) {
         .await
     });
     let (ctrl_res, node_res) = tokio::join!(controller_task, node_task);
-    (
-        ctrl_res.unwrap().unwrap(),
-        node_res.unwrap().unwrap(),
-    )
+    (ctrl_res.unwrap().unwrap(), node_res.unwrap().unwrap())
 }
 
 #[derive(Clone)]
@@ -163,7 +160,9 @@ async fn control_mac_roundtrip() {
         .envelope(1, ControlOp::Identify, payload.clone())
         .unwrap();
     responder.verify(&envelope).unwrap();
-    let ack = responder.ack(envelope.seq, true, Some("ok".into())).unwrap();
+    let ack = responder
+        .ack(envelope.seq, true, Some("ok".into()))
+        .unwrap();
     let ack_payload = json!({"ok": true, "detail": "ok"});
     let expected_mac = responder
         .crypto
@@ -181,7 +180,9 @@ async fn streaming_frames_hold_last_when_requested() {
     stream
         .send(ChannelFormat::U8, vec![10, 20], 5, None, None)
         .unwrap();
-    stream.send(ChannelFormat::U8, Vec::new(), 5, None, None).unwrap();
+    stream
+        .send(ChannelFormat::U8, Vec::new(), 5, None, None)
+        .unwrap();
     let snapshots = transport.snapshots();
     assert_eq!(snapshots.len(), 2);
     let first: FrameEnvelope = serde_cbor::from_slice(&snapshots[0]).unwrap();

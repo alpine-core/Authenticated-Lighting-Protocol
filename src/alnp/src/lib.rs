@@ -6,18 +6,19 @@
 
 pub mod control;
 pub mod crypto;
+pub mod device;
 pub mod discovery;
+pub mod e2e_common;
 pub mod handshake;
 pub mod messages;
 pub mod session;
 pub mod stream;
-pub mod device;
 
 pub use control::{ControlClient, ControlCrypto, ControlResponder};
+pub use device::DeviceServer;
 pub use messages::{
     Acknowledge, CapabilitySet, ChannelFormat, ControlEnvelope, ControlOp, DeviceIdentity,
     DiscoveryReply, DiscoveryRequest, FrameEnvelope, MessageType, SessionEstablished,
 };
 pub use session::{AlnpRole, AlnpSession, JitterStrategy};
 pub use stream::{AlnpStream, FrameTransport};
-pub use device::DeviceServer;

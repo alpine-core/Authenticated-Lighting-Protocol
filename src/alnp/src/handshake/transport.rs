@@ -68,7 +68,10 @@ pub struct TimeoutTransport<T> {
 
 impl<T> TimeoutTransport<T> {
     pub fn new(inner: T, recv_timeout: Duration) -> Self {
-        Self { inner, recv_timeout }
+        Self {
+            inner,
+            recv_timeout,
+        }
     }
 }
 

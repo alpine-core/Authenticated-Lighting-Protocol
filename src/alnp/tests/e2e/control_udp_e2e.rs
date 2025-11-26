@@ -9,7 +9,7 @@ use alpine::handshake::HandshakeError;
 use alpine::messages::{Acknowledge, ControlEnvelope, ControlOp};
 use uuid::Uuid;
 
-use super::common::run_udp_handshake;
+use alpine::e2e_common::run_udp_handshake;
 
 fn verify_ack(ack: &Acknowledge, crypto: &ControlCrypto) -> Result<(), HandshakeError> {
     let payload = json!({"ok": ack.ok, "detail": ack.detail});
@@ -36,11 +36,8 @@ async fn control_udp_e2e_phase2() -> Result<(), Box<dyn Error>> {
     let node_addr = node_socket.local_addr()?;
 
     let responder = ControlResponder::new(session_id, node_crypto);
-    let controller_control = ControlClient::new(
-        Uuid::new_v4(),
-        session_id,
-        controller_crypto_for_client,
-    );
+    let controller_control =
+        ControlClient::new(Uuid::new_v4(), session_id, controller_crypto_for_client);
 
     let node_task = tokio::spawn(async move {
         let mut buf = vec![0u8; 2048];
@@ -66,9 +63,7 @@ async fn control_udp_e2e_phase2() -> Result<(), Box<dyn Error>> {
     });
 
     let (node_res, controller_res) = tokio::join!(node_task, controller_task);
-    node_res?
-        .map_err(|e| e as Box<dyn Error>)?;
-    controller_res?
-        .map_err(|e| e as Box<dyn Error>)?;
+    node_res?.map_err(|e| e as Box<dyn Error>)?;
+    controller_res?.map_err(|e| e as Box<dyn Error>)?;
     Ok(())
 }

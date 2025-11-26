@@ -5,11 +5,10 @@ use async_trait::async_trait;
 use serde_cbor;
 use tokio::net::UdpSocket;
 
-use alpine::handshake::{HandshakeContext, HandshakeError, HandshakeMessage, HandshakeTransport};
-use alpine::messages::CapabilitySet;
-use alpine::session::{AlnpSession, StaticKeyAuthenticator};
-use alpine::crypto::X25519KeyExchange;
-use alpine::messages::DeviceIdentity;
+use crate::crypto::X25519KeyExchange;
+use crate::handshake::{HandshakeContext, HandshakeError, HandshakeMessage, HandshakeTransport};
+use crate::messages::{CapabilitySet, DeviceIdentity};
+use crate::session::{AlnpSession, StaticKeyAuthenticator};
 use uuid::Uuid;
 
 struct UdpHandshakeTransport {
@@ -69,8 +68,7 @@ pub async fn run_udp_handshake() -> Result<(AlnpSession, AlnpSession), Box<dyn E
     let node_addr = node_socket.local_addr()?;
 
     let controller_task = tokio::spawn(async move {
-        let mut transport =
-            UdpHandshakeTransport::new(controller_socket, node_addr, 4096);
+        let mut transport = UdpHandshakeTransport::new(controller_socket, node_addr, 4096);
         AlnpSession::connect(
             make_identity("controller"),
             CapabilitySet::default(),

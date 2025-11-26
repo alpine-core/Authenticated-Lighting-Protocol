@@ -33,7 +33,8 @@ impl DiscoveryClient {
         let mut nonce = vec![0u8; 32];
         OsRng.fill_bytes(&mut nonce);
         let request = DiscoveryRequest::new(requested, nonce.clone());
-        let bytes = serde_cbor::to_vec(&request).map_err(|e| DiscoveryError::Decode(e.to_string()))?;
+        let bytes =
+            serde_cbor::to_vec(&request).map_err(|e| DiscoveryError::Decode(e.to_string()))?;
         socket
             .send_to(&bytes, broadcast)
             .await
@@ -51,8 +52,8 @@ impl DiscoveryClient {
             .recv_from(&mut buf)
             .await
             .map_err(|e| DiscoveryError::Io(e.to_string()))?;
-        let reply: DiscoveryReply =
-            serde_cbor::from_slice(&buf[..len]).map_err(|e| DiscoveryError::Decode(e.to_string()))?;
+        let reply: DiscoveryReply = serde_cbor::from_slice(&buf[..len])
+            .map_err(|e| DiscoveryError::Decode(e.to_string()))?;
         verify_reply(&reply, expected_nonce, verifier)?;
         Ok(reply)
     }
@@ -96,8 +97,8 @@ fn verify_reply(
     // Signature is taken over server_nonce || client_nonce to bind request/response.
     let mut data = reply.server_nonce.clone();
     data.extend_from_slice(expected_client_nonce);
-    let sig = Signature::from_slice(&reply.signature)
-        .map_err(|_| DiscoveryError::InvalidSignature)?;
+    let sig =
+        Signature::from_slice(&reply.signature).map_err(|_| DiscoveryError::InvalidSignature)?;
     verifier
         .verify(&data, &sig)
         .map_err(|_| DiscoveryError::InvalidSignature)?;

@@ -59,7 +59,13 @@ pub struct DiscoveryReply {
 }
 
 impl DiscoveryReply {
-    pub fn new(identity: &DeviceIdentity, mac: String, server_nonce: Vec<u8>, capabilities: CapabilitySet, signature: Vec<u8>) -> Self {
+    pub fn new(
+        identity: &DeviceIdentity,
+        mac: String,
+        server_nonce: Vec<u8>,
+        capabilities: CapabilitySet,
+        signature: Vec<u8>,
+    ) -> Self {
         Self {
             message_type: MessageType::AlpineDiscoverReply,
             alpine_version: ALPINE_VERSION.to_string(),

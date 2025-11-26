@@ -2,9 +2,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::crypto::{compute_mac, verify_mac, SessionKeys};
 use crate::handshake::HandshakeError;
-use crate::messages::{
-    Acknowledge, ControlEnvelope, ControlOp, MessageType,
-};
+use crate::messages::{Acknowledge, ControlEnvelope, ControlOp, MessageType};
 use crate::{handshake::transport::ReliableControlChannel, handshake::HandshakeTransport};
 use serde_json::json;
 use uuid::Uuid;
@@ -72,7 +70,9 @@ impl ControlClient {
         op: ControlOp,
         payload: serde_json::Value,
     ) -> Result<ControlEnvelope, HandshakeError> {
-        let mac = self.crypto.mac_for_payload(seq, &self.session_id, &payload)?;
+        let mac = self
+            .crypto
+            .mac_for_payload(seq, &self.session_id, &payload)?;
         Ok(ControlEnvelope {
             message_type: MessageType::AlpineControl,
             session_id: self.session_id,
@@ -118,9 +118,16 @@ impl ControlResponder {
             .verify_mac(env.seq, &env.session_id, &env.payload, &env.mac)
     }
 
-    pub fn ack(&self, seq: u64, ok: bool, detail: Option<String>) -> Result<Acknowledge, HandshakeError> {
+    pub fn ack(
+        &self,
+        seq: u64,
+        ok: bool,
+        detail: Option<String>,
+    ) -> Result<Acknowledge, HandshakeError> {
         let payload = json!({"ok": ok, "detail": detail});
-        let mac = self.crypto.mac_for_payload(seq, &self.session_id, &payload)?;
+        let mac = self
+            .crypto
+            .mac_for_payload(seq, &self.session_id, &payload)?;
         Ok(Acknowledge {
             message_type: MessageType::AlpineControlAck,
             session_id: self.session_id,
