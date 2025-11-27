@@ -11,7 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         cid: uuid::Uuid::new_v4(),
         manufacturer: "Demo".into(),
         model: "RustClient".into(),
-        firmware_rev: "1.0.10".into(),
+        firmware_rev: "1.0.11".into(),
     };
 
     // Replace LoopbackTransport with JsonUdpTransport::bind for real network.

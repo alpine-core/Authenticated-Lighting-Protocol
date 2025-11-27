@@ -66,6 +66,15 @@ Each binding provides:
 - Control envelope API
 - Streaming client/server
 
+## SDK layers
+
+- **Rust**: `src/alnp/src/sdk` exposes `AlpineClient`, which orchestrates discovery, handshake, streaming frames, and keepalive over UDP while reusing the control/crypto helpers.
+- **TypeScript**: `bindings/ts/src/sdk/client.ts` wraps the binding helpers with a Node UDP client that exposes `discover()`, `handshake()`, and `sendFrame()` convenience methods.
+- **Python**: `bindings/python/src/alnp/sdk` provides a socket-driven class that builds CBOR discovery/control/frame payloads and leaves network I/O to the consumer.
+- **C++**: `bindings/cpp/sdk/alpine_sdk.hpp` defines `AlpineTransport` and `AlpineClient` so you can feed encoded discovery/control/frame bytes into your own transport implementation.
+
+Use these SDKs as the primary application entry points, and reserve the auto-generated low-level bindings for embedded or constrained contexts.
+
 ## Embedded mode
 
 The C++ helper exposes an `ALPINE_EMBEDDED` configuration that keeps the API

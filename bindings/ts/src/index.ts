@@ -206,3 +206,5 @@ export interface SessionState {
   state: "Init" | "Handshake" | "Authenticated" | "Ready" | "Streaming" | "Failed" | "Closed";
   reason?: string;
 }
+
+export * as sdk from "./sdk";

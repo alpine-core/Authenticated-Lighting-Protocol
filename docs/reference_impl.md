@@ -7,6 +7,7 @@ This document describes how to implement ALPINE 1.0 in:
 - Python
 - C (static library)
 - C++ helper header + `ALPINE_EMBEDDED` profile
+- Language-specific SDK helpers (Rust `sdk`, TypeScript `sdk`, Python `sdk`, C++ `sdk`)
 - C++ (helper header wrapping the C helpers)
 
 A correct implementation MUST:

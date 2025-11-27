@@ -11,6 +11,7 @@ pub mod discovery;
 pub mod e2e_common;
 pub mod handshake;
 pub mod messages;
+pub mod sdk;
 pub mod session;
 pub mod stream;
 
@@ -20,5 +21,6 @@ pub use messages::{
     Acknowledge, CapabilitySet, ChannelFormat, ControlEnvelope, ControlOp, DeviceIdentity,
     DiscoveryReply, DiscoveryRequest, FrameEnvelope, MessageType, SessionEstablished,
 };
+pub use sdk::AlpineClient;
 pub use session::{AlnpRole, AlnpSession, JitterStrategy};
 pub use stream::{AlnpStream, FrameTransport};

@@ -2,6 +2,11 @@
 
 All notable changes to ALPINE will be documented in this file.
 
+## [1.0.11] - 2025-12-04
+- Introduce language-specific SDK layers (`src/alnp/src/sdk`, `bindings/ts/src/sdk`, `bindings/python/src/alnp/sdk`, `bindings/cpp/sdk`) that wrap the low-level helpers with ergonomic APIs (`connect`, `send_frame`, `control`, keepalive).
+- Update docs/README to position those SDKs as the recommended application entry points while keeping the auto-generated bindings stable for embedded use.
+- Keep the existing release artifacts and embedded CI job so every platform receives docs, GHCR C packages, and the new embedded validations together with the SDK helpers.
+
 ## [1.0.10] - 2025-12-03
 - Publish the Rust crate as `alpine-protocol-rs` so we can continue releasing from the `alpine-core` repo even though the old crate name was owned elsewhere.
 - Update release scripts to copy the new `alpine-protocol-rs-*.crate` so the artifact matches the crates.io name while clients still include `alpine` in their namespaces.
@@ -50,6 +55,7 @@ All notable changes to ALPINE will be documented in this file.
 - ALNP-Stream gating with jitter handling (hold-last, drop, lerp).
 - TypeScript and C bindings scaffolds; Python package stub for clients.
 
+[1.0.11]: https://github.com/alpine-core/Authenticated-Lighting-Protocol/releases/tag/v1.0.11
 [1.0.10]: https://github.com/alpine-core/Authenticated-Lighting-Protocol/releases/tag/v1.0.10
 [1.0.9]: https://github.com/alpine-core/Authenticated-Lighting-Protocol/releases/tag/v1.0.9
 [1.0.8]: https://github.com/alpine-core/Authenticated-Lighting-Protocol/releases/tag/v1.0.8
