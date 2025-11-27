@@ -4,7 +4,7 @@ version = "1.0.2"
 edition = "2021"
 description = "Authenticated Lighting Protocol (alpine): secure control-plane + streaming guard for lighting data."
 license = "Apache-2.0"
-publish = ["github"]
+publish = ["crates-io", "github"]
 
 [lib]
 crate-type = ["rlib", "staticlib"]
@@ -32,7 +32,7 @@ tracing = "0.1"
 criterion = "0.4"
 
 [registries]
-github = { index = "https://github.com/y-link-dmx/Authenticated-Lighting-Protocol.git" }
+github = { index = "https://github.com/alpine-core/Authenticated-Lighting-Protocol.git" }
 
 [[bench]]
 name = "alpine_streaming"
