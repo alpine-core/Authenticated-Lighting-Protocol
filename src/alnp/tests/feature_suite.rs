@@ -66,7 +66,7 @@ fn make_identity(name: &str) -> DeviceIdentity {
         manufacturer_id: format!("{name}-manu"),
         model_id: format!("{name}-model"),
         hardware_rev: "rev1".into(),
-        firmware_rev: "1.0.0".into(),
+        firmware_rev: "1.0.2".into(),
     }
 }
 

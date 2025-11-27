@@ -57,7 +57,7 @@ pub fn make_identity(prefix: &str) -> DeviceIdentity {
         manufacturer_id: format!("{prefix}-manu"),
         model_id: format!("{prefix}-model"),
         hardware_rev: "rev1".into(),
-        firmware_rev: "1.0.0".into(),
+        firmware_rev: "1.0.2".into(),
     }
 }
 
