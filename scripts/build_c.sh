@@ -13,6 +13,6 @@ echo "==> Validating UDP E2E tests (cargo test --tests -- --ignored)"
 cargo test --tests -- --ignored
 cargo build --release
 
-cp -f target/release/libalnp.a "$DIST/libalnp-$VERSION.a"
+cp -f target/release/libalpine.a "$DIST/libalpine-$VERSION.a"
 cp -f "$ROOT_DIR/bindings/c/alnp.h" "$DIST/alnp.h"
 echo "C artifacts written to $DIST"
