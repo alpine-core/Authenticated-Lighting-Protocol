@@ -134,6 +134,11 @@ impl CompiledStreamProfile {
     pub fn resilience_weight(&self) -> u8 {
         self.resilience_weight
     }
+
+    /// Returns the declared intent of the compiled profile.
+    pub fn intent(&self) -> StreamIntent {
+        self.intent
+    }
 }
 
 impl Default for StreamProfile {

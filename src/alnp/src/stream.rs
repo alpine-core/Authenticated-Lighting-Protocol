@@ -8,6 +8,7 @@ use tracing::{info, warn};
 use crate::messages::{ChannelFormat, FrameEnvelope, MessageType};
 use crate::profile::CompiledStreamProfile;
 use crate::session::{AlnpSession, JitterStrategy};
+use crate::stream::adaptive::{decide_next_state, AdaptationState};
 
 /// Minimal transport for sending serialized ALPINE frames (UDP/QUIC left to the caller).
 pub trait FrameTransport: Send + Sync {
@@ -23,6 +24,8 @@ pub struct AlnpStream<T: FrameTransport> {
     last_frame: parking_lot::Mutex<Option<FrameEnvelope>>,
     profile: CompiledStreamProfile,
     recovery: parking_lot::Mutex<RecoveryMonitor>,
+    recovery_reason: parking_lot::Mutex<Option<RecoveryReason>>,
+    adaptation: parking_lot::Mutex<AdaptationState>,
 }
 
 /// Errors emitted from the streaming helper.
@@ -46,15 +49,20 @@ mod recovery;
 
 pub use recovery::{RecoveryEvent, RecoveryMonitor, RecoveryReason};
 
+mod adaptive;
+
 impl<T: FrameTransport> AlnpStream<T> {
     /// Builds a new streaming helper bound to a compiled profile.
     pub fn new(session: AlnpSession, transport: T, profile: CompiledStreamProfile) -> Self {
+        let intent = profile.intent();
         Self {
             session,
             transport,
             last_frame: parking_lot::Mutex::new(None),
             profile,
             recovery: parking_lot::Mutex::new(RecoveryMonitor::new()),
+            recovery_reason: parking_lot::Mutex::new(None),
+            adaptation: parking_lot::Mutex::new(AdaptationState::baseline(intent)),
         }
     }
 
@@ -81,7 +89,12 @@ impl<T: FrameTransport> AlnpStream<T> {
         }
 
         let adjusted_channels = self.apply_jitter(&channels);
-        let metadata = self.attach_recovery_metadata(metadata);
+        let mut adaptation = self.adaptation.lock();
+        let should_force_keyframe = adaptation.should_emit_keyframe();
+        let adaptation_snapshot = adaptation.clone();
+        drop(adaptation);
+        let metadata =
+            self.annotate_metadata(metadata, should_force_keyframe, &adaptation_snapshot);
 
         let envelope = FrameEnvelope {
             message_type: MessageType::AlpineFrame,
@@ -122,19 +135,26 @@ impl<T: FrameTransport> AlnpStream<T> {
                 ),
             }
         }
+        let reason = monitor.active_reason();
+        {
+            let mut guard = self.recovery_reason.lock();
+            *guard = reason;
+        }
+        drop(monitor);
+
+        let mut adaptation = self.adaptation.lock();
+        let decision = decide_next_state(&adaptation, conditions, reason, self.profile.intent());
+        *adaptation = decision.state;
     }
 
-    fn attach_recovery_metadata(
+    fn annotate_metadata(
         &self,
         metadata: Option<HashMap<String, Value>>,
+        force_keyframe: bool,
+        adaptation_snapshot: &AdaptationState,
     ) -> Option<HashMap<String, Value>> {
-        let reason = {
-            let monitor = self.recovery.lock();
-            monitor.active_reason()
-        };
-
-        if let Some(reason) = reason {
-            let mut map = metadata.unwrap_or_default();
+        let mut map = metadata.unwrap_or_default();
+        if let Some(reason) = *self.recovery_reason.lock() {
             map.insert(
                 "alpine_recovery".to_string(),
                 json!({
@@ -142,10 +162,25 @@ impl<T: FrameTransport> AlnpStream<T> {
                     "reason": reason.as_str(),
                 }),
             );
-            Some(map)
-        } else {
-            metadata
         }
+
+        let event_name = adaptation_snapshot
+            .last_event
+            .map(|event| event.as_str())
+            .unwrap_or("steady");
+        map.insert(
+            "alpine_adaptation".to_string(),
+            json!({
+                "keyframe_interval": adaptation_snapshot.keyframe_interval,
+                "delta_depth": adaptation_snapshot.delta_depth,
+                "deadline_offset_ms": adaptation_snapshot.deadline_offset_ms,
+                "degraded_safe": adaptation_snapshot.degraded_safe,
+                "frames_since_keyframe": adaptation_snapshot.frames_since_keyframe,
+                "force_keyframe": force_keyframe,
+                "event": event_name,
+            }),
+        );
+        Some(map)
     }
 
     fn apply_jitter(&self, channels: &[u16]) -> Vec<u16> {

@@ -2,11 +2,12 @@
 
 All notable changes to ALPINE will be documented in this file.
 
-## [Unreleased] - Phase 3.1–3.2 (Detection + Recovery)
+- ## [Unreleased] - Phase 3.1–3.2 (Detection + Recovery)
 - Introduce deterministic `NetworkConditions` metrics (loss ratio, late frame rate, jitter) so every session can observe per-stream network health without adaptive behavior.
 - Add regression tests proving the metrics stay deterministic when sequences miss, deadlines slip, or intervals vary.
 - Ship a deterministic `RecoveryMonitor` that starts/completes recovery on sustained or burst loss and annotates retransmitted frames with observable metadata so forced keyframes signal their intent without rewinding the timeline.
-- Design and unit-test the Phase 3.3.1 adaptation state machine so keyframe cadence, delta depth, and deadline adjustments evolve via a pure decision function bounded by profile guarantees and deterministic degraded-safe transitions.
+- Implement Phase 3.3.1’s pure adaptation core (deterministic state + decision engine) scoped to keyframe cadence, delta depth, and deadlines, and record its state without integrating yet.
+- Begin Phase 3.3.2 by wiring that engine into the streaming path: network + recovery drive `AdaptationState`, and each frame carries the resulting metadata (`alpine_adaptation` plus keyframe flag).
 
 ## [1.2.2] - 2025-11-28
 - Added regression tests covering profile validation failures, deterministic `config_id`, and the immutability guarantee once streaming begins.
