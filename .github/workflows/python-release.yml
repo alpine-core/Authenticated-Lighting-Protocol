@@ -1,4 +1,4 @@
-name: Python Release
+name: Python Release (PyPI)
 
 on:
   push:
@@ -6,48 +6,32 @@ on:
       - "v*"
 
 permissions:
-  contents: read
-  packages: write
+  contents: write
+  id-token: write
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install build deps
-        run: |
-          python -m pip install -U pip build
-
       - name: Build wheel
         run: |
+          python -m pip install -U pip build
           cd bindings/python
           python -m build
-          mkdir -p ../../dist/python
-          cp dist/* ../../dist/python/
 
-      - name: Publish to GitHub Packages
-        if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python -m pip install -U twine
-          twine upload \
-            --repository-url https://pypi.pkg.github.com/alpine-core/ \
-            dist/python/*
+      - name: Publish to PyPI (OIDC)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: bindings/python/dist/
 
       - name: GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           generate_release_notes: true
+          files: bindings/python/dist/*
