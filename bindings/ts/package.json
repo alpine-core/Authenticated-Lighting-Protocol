@@ -1,6 +1,6 @@
 {
   "name": "@alpine-core/bindings",
-"version": "1.0.11",
+  "version": "1.2.0",
   "description": "TypeScript bindings for the Authenticated Lighting Network Protocol.",
 "main": "dist/index.js",
 "types": "dist/index.d.ts",

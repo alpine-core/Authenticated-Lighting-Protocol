@@ -63,6 +63,15 @@ impl StreamProfile {
         }
     }
 
+    /// Creates a profile with explicit weights; useful for testing or advanced audience.
+    pub fn with_weights(intent: StreamIntent, latency_weight: u8, resilience_weight: u8) -> Self {
+        Self {
+            intent,
+            latency_weight,
+            resilience_weight,
+        }
+    }
+
     /// Normalizes and compiles the profile into a runtime configuration.
     ///
     /// # Guarantees
@@ -127,4 +136,42 @@ impl Default for StreamProfile {
         Self::auto()
     }
 
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn compile_non_zero_weights() {
+        let profile = StreamProfile::with_weights(StreamIntent::Auto, 10, 40);
+        let compiled = profile.compile().expect("must compile");
+        assert_eq!(compiled.latency_weight(), 10);
+        assert_eq!(compiled.resilience_weight(), 40);
+    }
+
+    #[test]
+    fn compile_config_id_deterministic() {
+        let a = StreamProfile::auto().compile().unwrap();
+        let b = StreamProfile::auto().compile().unwrap();
+        assert_eq!(a.config_id(), b.config_id());
+    }
+
+    #[test]
+    fn reject_zero_weights() {
+        let profile = StreamProfile::with_weights(StreamIntent::Auto, 0, 0);
+        assert!(matches!(
+            profile.compile(),
+            Err(ProfileError::ZeroTotalWeight)
+        ));
+    }
+
+    #[test]
+    fn reject_overflow_lat() {
+        let profile = StreamProfile::with_weights(StreamIntent::Auto, 200, 0);
+        assert!(matches!(
+            profile.compile(),
+            Err(ProfileError::LatencyWeightOutOfRange)
+        ));
+    }
 }

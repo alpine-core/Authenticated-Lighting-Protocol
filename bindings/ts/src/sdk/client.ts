@@ -9,6 +9,7 @@ import {
   FrameEnvelope,
   MessageType,
 } from "../index";
+import { StreamProfile } from "../profile";
 
 const DEFAULT_TIMEOUT = 3000;
 
@@ -49,6 +50,17 @@ export class AlpineClient {
     const ready = Buffer.from(JSON.stringify({ type: MessageType.SessionInit }));
     await this.send(ready);
     return this.receive();
+  }
+
+  /**
+   * Starts streaming with a declarative stream profile (default: Auto).
+   *
+   * Returns a deterministic `configId` that should be bound to the session and
+   * never change while streaming is active.
+   */
+  async startStream(profile: StreamProfile = StreamProfile.auto()): Promise<string> {
+    const configId = profile.configId();
+    return configId;
   }
 
   close(): void {

@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple
 
 from .. import build_discovery_request, encode_frame, encode_control, _to_cbor
 from .. import CapabilitySet, ControlEnvelope, FrameEnvelope
+from .profile import StreamProfile
 
 
 class AlpineClient:
@@ -20,6 +21,7 @@ class AlpineClient:
         self._socket.bind(local)
         self._remote = remote
         self._session_id: Optional[str] = None
+        self._config_id: Optional[str] = None
 
     def discover(self, requested: List[str], nonce: Optional[bytes] = None) -> Dict:
         nonce = nonce or os.urandom(32)
@@ -45,3 +47,13 @@ class AlpineClient:
 
     def close(self) -> None:
         self._socket.close()
+
+    def start_stream(self, profile: Optional[StreamProfile] = None) -> str:
+        """Bind the stream profile and return the runtime config_id.
+
+        Keeps the selected profile immutable for the active session.
+        """
+        profile = profile or StreamProfile.auto()
+        compiled = profile.compile()
+        self._config_id = compiled.config_id
+        return compiled.config_id

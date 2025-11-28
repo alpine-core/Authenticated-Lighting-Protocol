@@ -159,6 +159,13 @@ impl AlnpSession {
             .and_then(|guard| guard.clone())
     }
 
+    #[cfg(test)]
+    pub(crate) fn set_locked_profile_for_testing(&self, profile: CompiledStreamProfile) {
+        let mut compiled = self.compiled_profile.lock().unwrap();
+        *compiled = Some(profile);
+        *self.profile_locked.lock().unwrap() = true;
+    }
+
     pub fn set_jitter_strategy(&self, strat: JitterStrategy) {
         if let Ok(mut j) = self.jitter.lock() {
             *j = strat;
@@ -358,6 +365,31 @@ pub struct LoopbackTransport {
 impl LoopbackTransport {
     pub fn new() -> Self {
         Self { inbox: Vec::new() }
+    }
+}
+
+#[cfg(test)]
+mod session_tests {
+    use super::*;
+
+    #[test]
+    fn profile_lock_prevents_profile_swaps() {
+        let session = AlnpSession::new(AlnpRole::Controller);
+        let compiled = StreamProfile::auto().compile().unwrap();
+        session.set_stream_profile(compiled.clone()).unwrap();
+        session.mark_streaming();
+        assert!(session.set_stream_profile(compiled).is_err());
+    }
+
+    #[test]
+    fn config_id_matches_profile() {
+        let session = AlnpSession::new(AlnpRole::Controller);
+        let compiled = StreamProfile::realtime().compile().unwrap();
+        session.set_stream_profile(compiled.clone()).unwrap();
+        assert_eq!(
+            session.profile_config_id().unwrap(),
+            compiled.config_id()
+        );
     }
 }
 

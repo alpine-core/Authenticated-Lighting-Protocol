@@ -23,7 +23,7 @@ dependencies = [
 
 [[package]]
 name = "alpine-protocol-rs"
-version = "1.0.10"
+version = "1.2.0"
 dependencies = [
  "async-trait",
  "chacha20poly1305",

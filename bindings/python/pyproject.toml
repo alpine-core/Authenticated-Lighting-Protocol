@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "alnp"
-version = "1.0.11"
+version = "1.2.0"
 description = "Python helpers for the Authenticated Lighting Network Protocol."
 authors = [{ name = "ALNP Maintainers" }]
 readme = "README.md"
@@ -17,8 +17,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/alnp"
-Repository = "https://github.com/your-org/alnp"
+Homepage = "https://github.com/alpine-core/Authenticated-Lighting-Protocol"
+Repository = "https://github.com/alpine-core/Authenticated-Lighting-Protocol"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

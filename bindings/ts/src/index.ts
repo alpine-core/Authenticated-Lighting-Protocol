@@ -207,4 +207,5 @@ export interface SessionState {
   reason?: string;
 }
 
+export * from "./profile";
 export * as sdk from "./sdk";
